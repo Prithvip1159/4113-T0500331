@@ -5,6 +5,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.Serializable;
+import java.io.*;
 
 final class CityRideDataset {
 
@@ -118,7 +120,7 @@ class Journey {
         this.finalFare = finalFare;
     }
 
-    // --- Getters ---
+    // Getters
     public int getStartZone() { return startZone; }
     public int getEndZone() { return endZone; }
     public CityRideDataset.TimeBand getTimeBand() { return timeBand; }
@@ -126,7 +128,7 @@ class Journey {
     public BigDecimal getBaseFare() { return baseFare; }
     public BigDecimal getFinalFare() { return finalFare; }
 
-    // --- Setters (used by updateJourney in JourneyManager) ---
+    //  Setters (used by updateJourney in JourneyManager)
 
     public void setStartZone(int startZone) { this.startZone = startZone; }
     public void setEndZone(int endZone) { this.endZone = endZone; }
@@ -135,7 +137,7 @@ class Journey {
     public void setBaseFare(BigDecimal baseFare) { this.baseFare = baseFare; }
     public void setFinalFare(BigDecimal finalFare) { this.finalFare = finalFare; }
 
-    /* Prints a formatted single-line summary of this journey */
+//     Prints a formatted single-line summary of this journey
     public void displayJourney() {
         System.out.println("Zone " + startZone + " -> Zone " + endZone
                 + " | " + timeBand + " | " + passengerType
@@ -143,10 +145,132 @@ class Journey {
     }
 }
 
+class RiderProfile implements Serializable {
+    private String name;
+    private CityRideDataset.PassengerType passengerType;
+    private String paymentOption;
 
-// =============================================================================
-// JourneyManager — Handles CRUD operations, fare calculation, and daily caps
-// =============================================================================
+    public RiderProfile(String name, CityRideDataset.PassengerType passengerType, String paymentOption) {
+        this.name = name;
+        this.passengerType = passengerType;
+        this.paymentOption = paymentOption;
+    }
+
+    // Getters and Setters
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public CityRideDataset.PassengerType getPassengerType() { return passengerType; }
+    public void setPassengerType(CityRideDataset.PassengerType passengerType) { this.passengerType = passengerType; }
+
+    public String getPaymentOption() { return paymentOption; }
+    public void setPaymentOption(String paymentOption) { this.paymentOption = paymentOption; }
+
+    @Override
+    public String toString() {
+        return "Name: " + name + "\nPassenger Type: " + passengerType + "\nPayment Option: " + paymentOption;
+    }
+}
+
+
+class FileManager {
+    private static final ObjectMapper objectMapper = new ObjectMapper()
+            .enable(SerializationFeature.INDENT_OUTPUT);
+
+    // Save rider profile to JSON
+    public static void saveProfile(RiderProfile profile, String filePath) {
+        try {
+            objectMapper.writeValue(new File(filePath), profile);
+            System.out.println("Profile saved successfully to " + filePath);
+        } catch (IOException e) {
+            System.out.println("Error saving profile: " + e.getMessage());
+        }
+    }
+
+    // Load rider profile from JSON
+    public static RiderProfile loadProfile(String filePath) {
+        try {
+            return objectMapper.readValue(new File(filePath), RiderProfile.class);
+        } catch (IOException e) {
+            System.out.println("Error loading profile: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // Export journeys to CSV
+    public static void exportJourneysToCSV(List<Journey> journeys, String filePath) {
+        try (PrintWriter writer = new PrintWriter(new File(filePath))) {
+            writer.println("StartZone,EndZone,TimeBand,PassengerType,BaseFare,FinalFare");
+            for (Journey journey : journeys) {
+                writer.printf("%d,%d,%s,%s,%.2f,%.2f%n",
+                        journey.getStartZone(),
+                        journey.getEndZone(),
+                        journey.getTimeBand(),
+                        journey.getPassengerType(),
+                        journey.getBaseFare(),
+                        journey.getFinalFare());
+            }
+            System.out.println("Journeys exported successfully to " + filePath);
+        } catch (IOException e) {
+            System.out.println("Error exporting journeys: " + e.getMessage());
+        }
+    }
+
+    // Import journeys from CSV
+    public static List<Journey> importJourneysFromCSV(String filePath) {
+        List<Journey> journeys = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line = reader.readLine(); // Skip header
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                int startZone = Integer.parseInt(parts[0]);
+                int endZone = Integer.parseInt(parts[1]);
+                CityRideDataset.TimeBand timeBand = CityRideDataset.TimeBand.valueOf(parts[2]);
+                CityRideDataset.PassengerType passengerType = CityRideDataset.PassengerType.valueOf(parts[3]);
+                BigDecimal baseFare = new BigDecimal(parts[4]);
+                BigDecimal finalFare = new BigDecimal(parts[5]);
+
+                journeys.add(new Journey(startZone, endZone, timeBand, passengerType, baseFare, finalFare));
+            }
+            System.out.println("Journeys imported successfully from " + filePath);
+        } catch (IOException e) {
+            System.out.println("Error importing journeys: " + e.getMessage());
+        }
+        return journeys;
+    }
+}
+class AdminManager {
+    private static final String ADMIN_PASSWORD = "admin123";
+
+    public boolean authenticate(String password) {
+        return ADMIN_PASSWORD.equals(password);
+    }
+
+    public void viewConfig() {
+        System.out.println("\n--- Current Configuration ---");
+        System.out.println("Base Fares: " + CityRideDataset.BASE_FARE);
+        System.out.println("Discount Rates: " + CityRideDataset.DISCOUNT_RATE);
+        System.out.println("Daily Caps: " + CityRideDataset.DAILY_CAP);
+    }
+
+    public void updateConfig() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter start zone: ");
+        int startZone = scanner.nextInt();
+        System.out.print("Enter end zone: ");
+        int endZone = scanner.nextInt();
+        System.out.print("Enter time band (PEAK/OFF_PEAK): ");
+        String timeBandStr = scanner.next();
+        System.out.print("Enter new base fare: ");
+        BigDecimal newFare = scanner.nextBigDecimal();
+
+        CityRideDataset.TimeBand timeBand = CityRideDataset.TimeBand.valueOf(timeBandStr.toUpperCase());
+        String key = CityRideDataset.key(startZone, endZone, timeBand);
+        CityRideDataset.BASE_FARE.put(key, newFare);
+
+        System.out.println("Base fare updated successfully.");
+    }
+}
 
 class JourneyManager {
     private List<Journey> journeyList;
@@ -301,172 +425,47 @@ class JourneyManager {
         }
     }
 }
-
-// =============================================================================
-// CityRideLite — Main entry point and user interaction
-// =============================================================================
-
 public class CityRideLite {
     private Scanner scanner;
-
     private JourneyManager journeyManager;
+    private RiderProfile riderProfile;
 
     public CityRideLite() {
         scanner = new Scanner(System.in);
         journeyManager = new JourneyManager();
     }
 
-    /*
-     * Repeatedly prompts until a valid zone (1-5) is entered.
-     * Uses a boolean controller instead of while(true).
-     */
-    private int getValidZone(String prompt) {
-        int zone = -1;
-        boolean valid = false;
+    private void handleAdminMenu() {
+        AdminManager adminManager = new AdminManager();
+        System.out.print("Enter admin password: ");
+        String password = scanner.nextLine();
 
-        while (!valid) {
-            System.out.print(prompt);
-            zone = scanner.nextInt();
-            scanner.nextLine();
-            if (zone >= CityRideDataset.MIN_ZONE
-                    && zone <= CityRideDataset.MAX_ZONE) {
-                valid = true;
-            } else {
-                System.out.println("Invalid zone. Please enter a zone between "
-                        + CityRideDataset.MIN_ZONE + " and "
-                        + CityRideDataset.MAX_ZONE + ".");
-            }
-        }
-        return zone;
-    }
-    /* Prompts for a time band selection using a loop controller variable */
-    private CityRideDataset.TimeBand getTimeBand() {
-        CityRideDataset.TimeBand result = null;
-        boolean valid = false;
+        if (adminManager.authenticate(password)) {
+            int choice;
+            do {
+                System.out.println("\n===== Admin Menu =====");
+                System.out.println("1. View Configuration");
+                System.out.println("2. Update Configuration");
+                System.out.println("3. Exit Admin Menu");
+                System.out.print("Choice: ");
 
-        while (!valid) {
-            System.out.println("Select time band:");
-            System.out.println("1. PEAK");
-            System.out.println("2. OFF_PEAK");
-            System.out.print("Choice: ");
-            int choice = scanner.nextInt();
-            scanner.nextLine();
+                choice = scanner.nextInt();
+                scanner.nextLine();
 
-            switch (choice) {
-                case 1: result = CityRideDataset.TimeBand.PEAK;     valid = true; break;
-                case 2: result = CityRideDataset.TimeBand.OFF_PEAK; valid = true; break;
-                default: System.out.println("Invalid choice. Please select 1 or 2.");
-            }
-        }
-        return result;
-    }
-    /* Prompts for a passenger type selection using a loop controller variable */
-    private CityRideDataset.PassengerType getPassengerType() {
-        CityRideDataset.PassengerType result = null;
-        boolean valid = false;
-
-        while (!valid) {
-            System.out.println("Select passenger type:");
-            System.out.println("1. ADULT");
-            System.out.println("2. STUDENT");
-            System.out.println("3. CHILD");
-            System.out.println("4. SENIOR_CITIZEN");
-            System.out.print("Choice: ");
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (choice) {
-                case 1: result = CityRideDataset.PassengerType.ADULT;          valid = true; break;
-                case 2: result = CityRideDataset.PassengerType.STUDENT;        valid = true; break;
-                case 3: result = CityRideDataset.PassengerType.CHILD;          valid = true; break;
-                case 4: result = CityRideDataset.PassengerType.SENIOR_CITIZEN; valid = true; break;
-                default: System.out.println("Invalid choice. Please select 1-4.");
-            }
-        }
-        return result;
-    }
-
-
-
-    /* Collects journey details, calculates fare, and stores the journey */
-    private void handleAddJourney() {
-        int start = getValidZone("Enter start zone (1-5): ");
-        int end = getValidZone("Enter end zone (1-5): ");
-        CityRideDataset.TimeBand timeBand = getTimeBand();
-        CityRideDataset.PassengerType passengerType = getPassengerType();
-
-        BigDecimal baseFare = journeyManager.getBaseFare(start, end, timeBand);
-        BigDecimal finalFare = journeyManager.calculateFare(
-                start, end, timeBand, passengerType);
-
-        if (finalFare != null && baseFare != null) {
-            Journey journey = new Journey(start, end, timeBand,
-                    passengerType, baseFare, finalFare);
-            journeyManager.addJourney(journey);
-            System.out.println("Base Fare: £" + baseFare
-                    + " | Final Fare (after discount & cap): £" + finalFare);
-        }
-    }
-
-    /* Prompts for zone pair and displays the matching journey if found */
-    private void handleSearchJourney() {
-        int startZone = getValidZone("Enter start zone to search (1-5): ");
-        int endZone = getValidZone("Enter end zone to search (1-5): ");
-        Journey found = journeyManager.searchJourney(startZone, endZone);
-
-        if (found != null) {
-            found.displayJourney();
+                switch (choice) {
+                    case 1: adminManager.viewConfig(); break;
+                    case 2: adminManager.updateConfig(); break;
+                    case 3: System.out.println("Exiting Admin Menu."); break;
+                    default: System.out.println("Invalid choice. Try again.");
+                }
+            } while (choice != 3);
         } else {
-            System.out.println("Journey not found.");
+            System.out.println("Invalid password. Access denied.");
         }
     }
 
-    /* Shows current journeys, then lets the user pick one to update */
-    private void handleUpdateJourney() {
-        journeyManager.showAllJourneys();
-        System.out.print("Enter journey number to update: ");
-        int updateIndex = scanner.nextInt() - 1;
-        scanner.nextLine();
-
-        int newStart = getValidZone("Enter new start zone (1-5): ");
-        int newEnd = getValidZone("Enter new end zone (1-5): ");
-        CityRideDataset.TimeBand newTimeBand = getTimeBand();
-        CityRideDataset.PassengerType newPassengerType = getPassengerType();
-        journeyManager.updateJourney(updateIndex, newStart, newEnd,
-                newTimeBand, newPassengerType);
-    }
-
-    /* Shows current journeys, then lets the user pick one to delete */
-    private void handleDeleteJourney() {
-        journeyManager.showAllJourneys();
-        System.out.print("Enter journey number to delete: ");
-        int deleteIndex = scanner.nextInt() - 1;
-        scanner.nextLine();
-        journeyManager.deleteJourney(deleteIndex);
-    }
-
-    /* Calculates and displays the fare without recording a journey */
-    private void handleCalculateFare() {
-        int startZone = getValidZone("Enter start zone (1-5): ");
-        int endZone = getValidZone("Enter end zone (1-5): ");
-        CityRideDataset.TimeBand timeBand = getTimeBand();
-        CityRideDataset.PassengerType passengerType = getPassengerType();
-
-        BigDecimal calcBase = journeyManager.getBaseFare(
-                startZone, endZone, timeBand);
-        BigDecimal calcFare = journeyManager.calculateFare(
-                startZone, endZone, timeBand, passengerType);
-
-        if (calcFare != null && calcBase != null) {
-            System.out.println("Base Fare: £" + calcBase);
-            System.out.println("Discounted Fare (with daily cap): £" + calcFare);
-        }
-    }
-
-    /* Main application loop — displays menu and delegates to handler methods */
     public void run() {
         int choice;
-
         do {
             System.out.println("\n===== CityRideLite Menu =====");
             System.out.println("1. Add Journey");
@@ -476,33 +475,30 @@ public class CityRideLite {
             System.out.println("5. Delete Journey");
             System.out.println("6. Calculate Fare");
             System.out.println("7. View Daily Spending");
-            System.out.println("8. Exit");
+            System.out.println("8. Admin Menu");
+            System.out.println("9. Exit");
             System.out.print("Choice: ");
 
             choice = scanner.nextInt();
             scanner.nextLine();
 
             switch (choice) {
-                case 1: handleAddJourney();                  break;
-                case 2: journeyManager.showAllJourneys();    break;
-                case 3: handleSearchJourney();               break;
-                case 4: handleUpdateJourney();               break;
-                case 5: handleDeleteJourney();               break;
-                case 6: handleCalculateFare();               break;
-                case 7: journeyManager.showDailySpending();  break;
-                case 8: System.out.println("Exiting CityRideLite. Goodbye!"); break;
+                case 1: handleAddJourney(); break;
+                case 2: journeyManager.showAllJourneys(); break;
+                case 3: handleSearchJourney(); break;
+                case 4: handleUpdateJourney(); break;
+                case 5: handleDeleteJourney(); break;
+                case 6: handleCalculateFare(); break;
+                case 7: journeyManager.showDailySpending(); break;
+                case 8: handleAdminMenu(); break;
+                case 9: System.out.println("Exiting CityRideLite. Goodbye!"); break;
                 default: System.out.println("Invalid choice. Try again.");
             }
-        } while (choice != 8);
-
-        scanner.close();
+        } while (choice != 9);
     }
 
-    /* Entry point — creates an instance and starts the application */
     public static void main(String[] args) {
         CityRideLite app = new CityRideLite();
         app.run();
     }
 }
-
-// As per the tutor suggestions, I have created separate functions and I am calling each functions from my main menu.
