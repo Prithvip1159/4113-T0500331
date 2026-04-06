@@ -40,6 +40,7 @@ This research helped me understand how to save and load data using JSON files. I
 
 **Screenshot of research:**
 
+
 ![](C:\Users\Prithvi\AppData\Roaming\marktext\images\2026-04-06-23-19-23-image.png)
 
 ![](C:\Users\Prithvi\AppData\Roaming\marktext\images\2026-04-06-23-29-55-image.png)
