@@ -1,6 +1,8 @@
 import java.math.BigDecimal;
 import java.util.Scanner;
 
+// Handles admin authentication and configuration management
+
 public class AdminManager {
     private static final String ADMIN_PASSWORD = "admin123";
 
