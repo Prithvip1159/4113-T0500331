@@ -1,7 +1,6 @@
 import java.util.Scanner;
 import java.math.BigDecimal;
 
-
 public class CityRideLite {
     private Scanner scanner;
     private JourneyManager journeyManager;
@@ -28,8 +27,14 @@ public class CityRideLite {
                 System.out.println("3. Exit Admin Menu");
                 System.out.print("Choice: ");
 
-                choice = scanner.nextInt();
-                scanner.nextLine();
+                try {
+                    choice = scanner.nextInt();
+                    scanner.nextLine();
+                } catch (Exception e) {
+                    System.out.println("Please enter a valid number.");
+                    scanner.nextLine();
+                    choice = 0;
+                }
 
                 switch (choice) {
                     case 1:
@@ -105,28 +110,58 @@ public class CityRideLite {
     }
 
     private void handleAddJourney() {
-        System.out.print("Enter start zone: ");
-        int startZone = scanner.nextInt();
+        int fromZone = 0;
+        int toZone = 0;
+        CityRideDataset.TimeBand timeBand;
+        CityRideDataset.PassengerType passengerType;
 
-        System.out.print("Enter end zone: ");
-        int endZone = scanner.nextInt();
-        scanner.nextLine();
+        try {
+            System.out.print("Enter start zone: ");
+            fromZone = scanner.nextInt();
 
-        System.out.print("Enter time band (PEAK/OFF_PEAK): ");
-        String timeBandInput = scanner.nextLine().toUpperCase();
+            System.out.print("Enter end zone: ");
+            toZone = scanner.nextInt();
+            scanner.nextLine();
 
-        System.out.print("Enter passenger type (ADULT/STUDENT/CHILD/SENIOR_CITIZEN): ");
-        String passengerTypeInput = scanner.nextLine().toUpperCase();
+            System.out.print("Enter time band (PEAK/OFF_PEAK): ");
+            timeBand = CityRideDataset.TimeBand.valueOf(scanner.nextLine().toUpperCase());
 
-        CityRideDataset.TimeBand timeBand = CityRideDataset.TimeBand.valueOf(timeBandInput);
-        CityRideDataset.PassengerType passengerType =
-                CityRideDataset.PassengerType.valueOf(passengerTypeInput);
+            System.out.print("Enter passenger type (ADULT/STUDENT/CHILD/SENIOR_CITIZEN): ");
+            passengerType = CityRideDataset.PassengerType.valueOf(scanner.nextLine().toUpperCase());
 
-        BigDecimal baseFare = journeyManager.getBaseFare(startZone, endZone, timeBand);
-        BigDecimal finalFare = journeyManager.calculateFare(startZone, endZone, timeBand, passengerType);
+        } catch (java.util.InputMismatchException e) {
+            System.out.println("Invalid input: zones must be numbers.");
+            scanner.nextLine();
+            return;
 
-        if (baseFare != null && finalFare != null) {
-            Journey journey = new Journey(startZone, endZone, timeBand, passengerType, baseFare, finalFare);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid input: check time band or passenger type values.");
+            return;
+        }
+
+        BigDecimal baseFare = journeyManager.getBaseFare(fromZone, toZone, timeBand);
+        BigDecimal chargedFare = journeyManager.calculateFare(fromZone, toZone, timeBand, passengerType);
+
+        if (baseFare != null && chargedFare != null) {
+
+            String id = "J" + String.format("%03d", journeyManager.getAllJourneys().size() + 1);
+            String dateTime = java.time.LocalDateTime.now().toString();
+            int zonesCrossed = Math.abs(fromZone - toZone);
+            BigDecimal discount = baseFare.subtract(chargedFare);
+
+            Journey journey = new Journey(
+                    id,
+                    dateTime,
+                    fromZone,
+                    toZone,
+                    timeBand,
+                    passengerType,
+                    zonesCrossed,
+                    baseFare,
+                    discount,
+                    chargedFare
+            );
+
             journeyManager.addJourney(journey);
         } else {
             System.out.println("Journey could not be added.");
@@ -134,20 +169,103 @@ public class CityRideLite {
     }
 
 
+    // prompts for zones and assigns search to JourneyManager
     private void handleSearchJourney() {
-        System.out.println("Search Journey selected.");
+        System.out.print("Enter start zone: ");
+        int startZone = scanner.nextInt();
+        System.out.print("Enter end zone: ");
+        int endZone = scanner.nextInt();
+        scanner.nextLine();
+
+        Journey found = journeyManager.searchJourney(startZone, endZone);
+        if (found != null) {
+            found.displayJourney();
+        } else {
+            System.out.println("No journey found for those zones.");
+        }
     }
 
+    // shows all journeys and asks which to delete by number
+        private void handleDeleteJourney() {
+        journeyManager.showAllJourneys();
+        System.out.print("Enter journey number to delete: ");
+        int index = scanner.nextInt() - 1;
+        scanner.nextLine();
+        journeyManager.deleteJourney(index);
+    }
     private void handleUpdateJourney() {
-        System.out.println("Update Journey selected.");
+        journeyManager.showAllJourneys();
+
+        System.out.print("Enter journey number to update: ");
+
+        int index;
+        try {
+            index = scanner.nextInt() - 1;
+            scanner.nextLine();
+        } catch (Exception e) {
+            System.out.println("Invalid journey number.");
+            scanner.nextLine();
+            return;
+        }
+
+        try {
+            System.out.print("Enter new start zone: ");
+            int newStart = scanner.nextInt();
+
+            System.out.print("Enter new end zone: ");
+            int newEnd = scanner.nextInt();
+            scanner.nextLine();
+
+            System.out.print("Enter new time band (PEAK/OFF_PEAK): ");
+            CityRideDataset.TimeBand newTimeBand =
+                    CityRideDataset.TimeBand.valueOf(scanner.nextLine().toUpperCase());
+
+            System.out.print("Enter new passenger type (ADULT/STUDENT/CHILD/SENIOR_CITIZEN): ");
+            CityRideDataset.PassengerType newType =
+                    CityRideDataset.PassengerType.valueOf(scanner.nextLine().toUpperCase());
+
+            journeyManager.updateJourney(index, newStart, newEnd, newTimeBand, newType);
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid time band or passenger type.");
+        } catch (Exception e) {
+            System.out.println("Invalid input. Please try again.");
+            scanner.nextLine();
+        }
     }
 
-    private void handleDeleteJourney() {
-        System.out.println("Delete Journey selected.");
-    }
-
+    // calculates and displays fare without adding a journey
     private void handleCalculateFare() {
-        System.out.println("Calculate Fare selected.");
+        try {
+            System.out.print("Enter start zone: ");
+            int fromZone = scanner.nextInt();
+
+            System.out.print("Enter end zone: ");
+            int toZone = scanner.nextInt();
+            scanner.nextLine();
+
+            System.out.print("Enter time band (PEAK/OFF_PEAK): ");
+            CityRideDataset.TimeBand timeBand =
+                    CityRideDataset.TimeBand.valueOf(scanner.nextLine().toUpperCase());
+
+            System.out.print("Enter passenger type (ADULT/STUDENT/CHILD/SENIOR_CITIZEN): ");
+            CityRideDataset.PassengerType passengerType =
+                    CityRideDataset.PassengerType.valueOf(scanner.nextLine().toUpperCase());
+
+            BigDecimal fare = journeyManager.calculateFare(fromZone, toZone, timeBand, passengerType);
+
+            if (fare != null) {
+                System.out.println("Calculated fare: £" + fare);
+            } else {
+                System.out.println("Could not calculate fare.");
+            }
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid time band or passenger type.");
+        } catch (Exception e) {
+            System.out.println("Invalid input. Please enter numbers correctly.");
+            scanner.nextLine();
+        }
     }
 
 
