@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/* This manages the journeys and doing the activities like
+ adding, updating, deleting, and fare calculations*/
+
 public class JourneyManager {
     private List<Journey> journeyList;
     private Map<CityRideDataset.PassengerType, BigDecimal> dailySpending;
@@ -18,6 +21,7 @@ public class JourneyManager {
         }
     }
 
+    // Calculates fare including the discount and daily cap
     public BigDecimal calculateFare(int fromZone, int toZone,
                                     CityRideDataset.TimeBand timeBand,
                                     CityRideDataset.PassengerType passengerType) {
@@ -144,6 +148,7 @@ public class JourneyManager {
         return journeyList;
     }
 
+    // Replaces journeys and rebuilds spending (this is used after loading files)
     public void setJourneys(List<Journey> journeys) {
         // Prevents null issues
         this.journeyList = (journeys != null) ? journeys : new ArrayList<>();
