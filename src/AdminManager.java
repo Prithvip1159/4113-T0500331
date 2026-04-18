@@ -18,16 +18,16 @@ public class AdminManager {
     public void updateConfig() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter start zone: ");
-        int startZone = scanner.nextInt();
+        int fromZone = scanner.nextInt();
         System.out.print("Enter end zone: ");
-        int endZone = scanner.nextInt();
+        int toZone = scanner.nextInt();
         System.out.print("Enter time band (PEAK/OFF_PEAK): ");
         String timeBandStr = scanner.next();
         System.out.print("Enter new base fare: ");
         BigDecimal newFare = scanner.nextBigDecimal();
 
         CityRideDataset.TimeBand timeBand = CityRideDataset.TimeBand.valueOf(timeBandStr.toUpperCase());
-        String key = CityRideDataset.key(startZone, endZone, timeBand);
+        String key = CityRideDataset.key(fromZone, toZone, timeBand);
         CityRideDataset.BASE_FARE.put(key, newFare);
 
         System.out.println("Base fare updated successfully.");
