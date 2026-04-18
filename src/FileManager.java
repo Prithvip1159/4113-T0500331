@@ -5,13 +5,15 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+// Handles saving and loading data using JSON and CSV files
+
 public class FileManager {
 
     private static final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .create();
 
-    // json save/ load journeys
+    // json save journeys
     public static void saveJourneysToJSON(List<Journey> journeys, String filePath) {
         try (Writer writer = new FileWriter(filePath)) {
             gson.toJson(journeys, writer);
@@ -20,6 +22,7 @@ public class FileManager {
             System.out.println("Error saving JSON: " + e.getMessage());
         }
     }
+    // json load journeys
     public static List<Journey> loadJourneysFromJSON(String filePath) {
         try (Reader reader = new FileReader(filePath)) {
             Journey[] arr = gson.fromJson(reader, Journey[].class);
