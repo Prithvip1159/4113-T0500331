@@ -1,22 +1,21 @@
 import java.util.Scanner;
 import java.math.BigDecimal;
 
+// Main class handling user interaction and menu operations
+
 public class CityRideLite {
     private Scanner scanner;
     private JourneyManager journeyManager;
-
 
     public CityRideLite() {
         scanner = new Scanner(System.in);
         journeyManager = new JourneyManager();
     }
 
-
     private void handleAdminMenu() {
         AdminManager adminManager = new AdminManager();
         System.out.print("Enter admin password: ");
         String password = scanner.nextLine();
-
 
         if (adminManager.authenticate(password)) {
             int choice;
@@ -55,7 +54,7 @@ public class CityRideLite {
         }
     }
 
-
+    //runs the main loop
     public void run() {
         int choice;
         do {
@@ -68,12 +67,21 @@ public class CityRideLite {
             System.out.println("6. Calculate Fare");
             System.out.println("7. View Daily Spending");
             System.out.println("8. Admin Menu");
-            System.out.println("9. Exit");
+            System.out.println("9. Save Journeys (JSON)");
+            System.out.println("10. Load Journeys (JSON)");
+            System.out.println("11. Export to CSV");
+            System.out.println("12. Import from CSV");
+            System.out.println("13. Exit");
             System.out.print("Choice: ");
 
-            choice = scanner.nextInt();
-            scanner.nextLine();
-
+            try {
+                choice = scanner.nextInt();
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.out.println("Please enter a valid number.");
+                scanner.nextLine();
+                choice = 0;
+            }
 
             switch (choice) {
                 case 1:
@@ -101,12 +109,39 @@ public class CityRideLite {
                     handleAdminMenu();
                     break;
                 case 9:
+                    FileManager.saveJourneysToJSON(
+                            journeyManager.getAllJourneys(),
+                            "journeys.json"
+                    );
+                    break;
+
+                case 10:
+                    journeyManager.setJourneys(
+                            FileManager.loadJourneysFromJSON("journeys.json")
+                    );
+                    System.out.println("Journeys loaded successfully.");
+                    break;
+
+                case 11:
+                    FileManager.exportJourneysToCSV(
+                            journeyManager.getAllJourneys(),
+                            "journeys.csv"
+                    );
+                    break;
+
+                case 12:
+                    journeyManager.setJourneys(
+                            FileManager.importJourneysFromCSV("journeys.csv")
+                    );
+                    System.out.println("Journeys imported successfully.");
+                    break;
+
+                case 13:
                     System.out.println("Exiting CityRideLite. Goodbye!");
                     break;
-                default:
-                    System.out.println("Invalid choice. Try again.");
+
             }
-        } while (choice != 9);
+        } while (choice != 13);
     }
 
     private void handleAddJourney() {
@@ -144,10 +179,19 @@ public class CityRideLite {
 
         if (baseFare != null && chargedFare != null) {
 
-            String id = "J" + String.format("%03d", journeyManager.getAllJourneys().size() + 1);
-            String dateTime = java.time.LocalDateTime.now().toString();
-            int zonesCrossed = Math.abs(fromZone - toZone);
-            BigDecimal discount = baseFare.subtract(chargedFare);
+
+            String id = "J" + (journeyManager.getAllJourneys().size() + 1);
+
+
+            String dateTime = java.time.LocalDateTime.now()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+
+
+            int zonesCrossed = Math.abs(fromZone - toZone) + 1;
+
+
+            BigDecimal discountRate = CityRideDataset.DISCOUNT_RATE.get(passengerType);
+            BigDecimal discount = baseFare.multiply(discountRate);
 
             Journey journey = new Journey(
                     id,
@@ -164,11 +208,9 @@ public class CityRideLite {
 
             journeyManager.addJourney(journey);
         } else {
-            System.out.println("Journey could not be added.");
+            System.out.println("Journey could not be added due to invalid fare calculation.");
         }
     }
-
-
     // prompts for zones and assigns search to JourneyManager
     private void handleSearchJourney() {
         System.out.print("Enter start zone: ");
@@ -184,15 +226,15 @@ public class CityRideLite {
             System.out.println("No journey found for those zones.");
         }
     }
-
     // shows all journeys and asks which to delete by number
-        private void handleDeleteJourney() {
+    private void handleDeleteJourney() {
         journeyManager.showAllJourneys();
         System.out.print("Enter journey number to delete: ");
         int index = scanner.nextInt() - 1;
         scanner.nextLine();
         journeyManager.deleteJourney(index);
     }
+    // shows all journeys and asks which to update by number
     private void handleUpdateJourney() {
         journeyManager.showAllJourneys();
 
@@ -233,7 +275,6 @@ public class CityRideLite {
             scanner.nextLine();
         }
     }
-
     // calculates and displays fare without adding a journey
     private void handleCalculateFare() {
         try {
@@ -267,9 +308,7 @@ public class CityRideLite {
             scanner.nextLine();
         }
     }
-
-
-    // main()
+    //main
     public static void main(String[] args) {
         CityRideLite app = new CityRideLite();
         app.run();
