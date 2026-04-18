@@ -231,45 +231,45 @@ final class CityRideDataset {
 }  
 
 class Journey {  
-    private int startZone;  
-    private int endZone;  
+    private int fromZone;  
+    private int toZone;  
     private CityRideDataset.TimeBand timeBand;  
     private CityRideDataset.PassengerType passengerType;  
     private BigDecimal baseFare;  
-    private BigDecimal finalFare;  
+    private BigDecimal chargedFare;  
 
-    public Journey(int startZone, int endZone, CityRideDataset.TimeBand timeBand,  
-                   CityRideDataset.PassengerType passengerType, BigDecimal baseFare, BigDecimal finalFare) {  
-        this.startZone = startZone;  
-        this.endZone = endZone;  
+    public Journey(int fromZone, int toZone, CityRideDataset.TimeBand timeBand,  
+                   CityRideDataset.PassengerType passengerType, BigDecimal baseFare, BigDecimal chargedFare) {  
+        this.fromZone = fromZone;  
+        this.toZone = toZone;  
         this.timeBand = timeBand;  
         this.passengerType = passengerType;  
         this.baseFare = baseFare;  
-        this.finalFare = finalFare;  
+        this.chargedFare = chargedFare;  
     }  
     
     // Getters  
-    public int getStartZone() { return startZone; }  
-    public int getEndZone() { return endZone; }  
+    public int getfromZone() { return fromZone; }  
+    public int gettoZone() { return toZone; }  
     public CityRideDataset.TimeBand getTimeBand() { return timeBand; }  
     public CityRideDataset.PassengerType getPassengerType() { return passengerType; }  
     public BigDecimal getBaseFare() { return baseFare; }  
-    public BigDecimal getFinalFare() { return finalFare; }  
+    public BigDecimal getchargedFare() { return chargedFare; }  
     
     //  Setters (used by updateJourney in JourneyManager)  
     
-    public void setStartZone(int startZone) { this.startZone = startZone; }  
-    public void setEndZone(int endZone) { this.endZone = endZone; }  
+    public void setfromZone(int fromZone) { this.fromZone = fromZone; }  
+    public void settoZone(int toZone) { this.toZone = toZone; }  
     public void setTimeBand(CityRideDataset.TimeBand timeBand) { this.timeBand = timeBand; }  
     public void setPassengerType(CityRideDataset.PassengerType passengerType) { this.passengerType = passengerType; }  
     public void setBaseFare(BigDecimal baseFare) { this.baseFare = baseFare; }  
-    public void setFinalFare(BigDecimal finalFare) { this.finalFare = finalFare; }  
+    public void setchargedFare(BigDecimal chargedFare) { this.chargedFare = chargedFare; }  
 
 //     Prints a formatted single-line summary of this journey  
     public void displayJourney() {  
-        System.out.println("Zone " + startZone + " -> Zone " + endZone  
+        System.out.println("Zone " + fromZone + " -> Zone " + toZone  
                 + " | " + timeBand + " | " + passengerType  
-                + " | Base: £" + baseFare + " | Final: £" + finalFare);  
+                + " | Base: £" + baseFare + " | Final: £" + chargedFare);  
     }  
 }  
 
@@ -328,15 +328,15 @@ class FileManager {
     // Export journeys to CSV  
     public static void exportJourneysToCSV(List<Journey> journeys, String filePath) {  
         try (PrintWriter writer = new PrintWriter(new File(filePath))) {  
-            writer.println("StartZone,EndZone,TimeBand,PassengerType,BaseFare,FinalFare");  
+            writer.println("fromZone,toZone,TimeBand,PassengerType,BaseFare,chargedFare");  
             for (Journey journey : journeys) {  
                 writer.printf("%d,%d,%s,%s,%.2f,%.2f%n",  
-                        journey.getStartZone(),  
-                        journey.getEndZone(),  
+                        journey.getfromZone(),  
+                        journey.gettoZone(),  
                         journey.getTimeBand(),  
                         journey.getPassengerType(),  
                         journey.getBaseFare(),  
-                        journey.getFinalFare());  
+                        journey.getchargedFare());  
             }  
             System.out.println("Journeys exported successfully to " + filePath);  
         } catch (IOException e) {  
@@ -351,14 +351,14 @@ class FileManager {
             String line = reader.readLine(); // Skip header  
             while ((line = reader.readLine()) != null) {  
                 String[] parts = line.split(",");  
-                int startZone = Integer.parseInt(parts[0]);  
-                int endZone = Integer.parseInt(parts[1]);  
+                int fromZone = Integer.parseInt(parts[0]);  
+                int toZone = Integer.parseInt(parts[1]);  
                 CityRideDataset.TimeBand timeBand = CityRideDataset.TimeBand.valueOf(parts[2]);  
                 CityRideDataset.PassengerType passengerType = CityRideDataset.PassengerType.valueOf(parts[3]);  
                 BigDecimal baseFare = new BigDecimal(parts[4]);  
-                BigDecimal finalFare = new BigDecimal(parts[5]);  
+                BigDecimal chargedFare = new BigDecimal(parts[5]);  
     
-                journeys.add(new Journey(startZone, endZone, timeBand, passengerType, baseFare, finalFare));  
+                journeys.add(new Journey(fromZone, toZone, timeBand, passengerType, baseFare, chargedFare));  
             }  
             System.out.println("Journeys imported successfully from " + filePath);  
         } catch (IOException e) {  
@@ -385,16 +385,16 @@ class AdminManager {
     public void updateConfig() {  
         Scanner scanner = new Scanner(System.in);  
         System.out.print("Enter start zone: ");  
-        int startZone = scanner.nextInt();  
+        int fromZone = scanner.nextInt();  
         System.out.print("Enter end zone: ");  
-        int endZone = scanner.nextInt();  
+        int toZone = scanner.nextInt();  
         System.out.print("Enter time band (PEAK/OFF_PEAK): ");  
         String timeBandStr = scanner.next();  
         System.out.print("Enter new base fare: ");  
         BigDecimal newFare = scanner.nextBigDecimal();  
     
         CityRideDataset.TimeBand timeBand = CityRideDataset.TimeBand.valueOf(timeBandStr.toUpperCase());  
-        String key = CityRideDataset.key(startZone, endZone, timeBand);  
+        String key = CityRideDataset.key(fromZone, toZone, timeBand);  
         CityRideDataset.BASE_FARE.put(key, newFare);  
     
         System.out.println("Base fare updated successfully.");  
@@ -464,7 +464,7 @@ class JourneyManager {
     public void addJourney(Journey j) {  
         journeyList.add(j);  
         BigDecimal currentSpending = dailySpending.getOrDefault(j.getPassengerType(), BigDecimal.ZERO);  
-        dailySpending.put(j.getPassengerType(), currentSpending.add(j.getFinalFare()));  
+        dailySpending.put(j.getPassengerType(), currentSpending.add(j.getchargedFare()));  
         System.out.println("Journey added successfully.");  
     }  
     
@@ -481,11 +481,11 @@ class JourneyManager {
     }  
     
     /* Returns the first journey matching both zones, or null if not found */  
-    public Journey searchJourney(int startZone, int endZone) {  
+    public Journey searchJourney(int fromZone, int toZone) {  
         Journey result = null;  
         for (Journey current : journeyList) {  
-            if (current.getStartZone() == startZone  
-                    && current.getEndZone() == endZone) {  
+            if (current.getfromZone() == fromZone  
+                    && current.gettoZone() == toZone) {  
                 result = current;  
                 break; // stop at first match  
             }  
@@ -499,7 +499,7 @@ class JourneyManager {
         if (index >= 0 && index < journeyList.size()) {  
             Journey removed = journeyList.remove(index);  
             BigDecimal currentSpending = dailySpending.get(removed.getPassengerType());  
-            dailySpending.put(removed.getPassengerType(), currentSpending.subtract(removed.getFinalFare()));  
+            dailySpending.put(removed.getPassengerType(), currentSpending.subtract(removed.getchargedFare()));  
             System.out.println("Journey deleted successfully.");  
         } else {  
             System.out.println("Invalid journey number.");  
@@ -515,21 +515,21 @@ class JourneyManager {
     
             /* Remove old fare from spending before recalculating */  
             BigDecimal oldSpending = dailySpending.get(j.getPassengerType());  
-            dailySpending.put(j.getPassengerType(), oldSpending.subtract(j.getFinalFare()));  
+            dailySpending.put(j.getPassengerType(), oldSpending.subtract(j.getchargedFare()));  
     
             BigDecimal baseFare = CityRideDataset.getBaseFare(newStart, newEnd, newTimeBand);  
-            BigDecimal finalFare = calculateFare(newStart, newEnd, newTimeBand, newPassengerType);  
+            BigDecimal chargedFare = calculateFare(newStart, newEnd, newTimeBand, newPassengerType);  
     
-            if (finalFare != null && baseFare != null) {  
-                j.setStartZone(newStart);  
-                j.setEndZone(newEnd);  
+            if (chargedFare != null && baseFare != null) {  
+                j.setfromZone(newStart);  
+                j.settoZone(newEnd);  
                 j.setTimeBand(newTimeBand);  
                 j.setPassengerType(newPassengerType);  
                 j.setBaseFare(baseFare);  
-                j.setFinalFare(finalFare);  
+                j.setchargedFare(chargedFare);  
     
                 BigDecimal newSpending = dailySpending.getOrDefault(newPassengerType, BigDecimal.ZERO);  
-                dailySpending.put(newPassengerType, newSpending.add(finalFare));  
+                dailySpending.put(newPassengerType, newSpending.add(chargedFare));  
                 System.out.println("Journey updated successfully.");  
             }  
         } else {  
