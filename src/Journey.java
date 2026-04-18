@@ -7,7 +7,7 @@ import java.math.BigDecimal;
  */
 public class Journey {
 
-    // attributes for the journey class include
+    // attributes for the journey class
     private String journeyId;
     private String journeyDateTime;
     private int fromZone;
