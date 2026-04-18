@@ -88,7 +88,7 @@ public class Journey {
     }
 
 
-    // Setters - this is used by updateJourney in JourneyManager
+    // Setters
 
     public void setJourneyId(String journeyId) {
         this.journeyId = journeyId;
@@ -139,7 +139,7 @@ public class Journey {
 
     // Returns a one-line summary string
     public String toSummaryLine() {
-        return String.format("[%s] %s | Zone %d -> %d | %s | %s | Zones: %d | Base: £%s | Discount: £%s | Charged: £%s",
+        return String.format("[%s] %s | Zone %d → %d | %s | %s | Zones: %d | Base: £%s | Discount: £%s | Charged: £%s",
                 journeyId,
                 journeyDateTime,
                 fromZone,
@@ -147,9 +147,9 @@ public class Journey {
                 timeBand,
                 passengerType,
                 zonesCrossed,
-                (baseFare != null ? baseFare.toPlainString() : "0.00"),
-                (discountApplied != null ? discountApplied.toPlainString() : "0.00"),
-                (chargedFare != null ? chargedFare.toPlainString() : "0.00"));
+                (baseFare != null ? baseFare.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString() : "0.00"),
+                (discountApplied != null ? discountApplied.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString() : "0.00"),
+                (chargedFare != null ? chargedFare.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString() : "0.00"));
     }
 
     // Returns a detailed multi-line string and is used when searching for a specific journey
@@ -197,8 +197,6 @@ public class Journey {
         return "journeyId,dateTime,fromZone,toZone,timeBand," +
                 "passengerType,zonesCrossed,baseFare,discountApplied,chargedFare";
     }
-
-    // Default toString returns the detailed view  useful for debugging with System.out.println(journey)
     @Override
     public String toString() {
         return toDetailString();
