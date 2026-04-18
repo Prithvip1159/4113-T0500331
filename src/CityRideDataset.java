@@ -3,6 +3,8 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
+// Stores fare data, discount rates, and daily caps
+
 final class CityRideDataset {
 
     private CityRideDataset() {}
