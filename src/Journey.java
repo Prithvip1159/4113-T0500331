@@ -139,7 +139,7 @@ public class Journey {
 
     // Returns a one-line summary string
     public String toSummaryLine() {
-        return String.format("[%s] %s | Zone %d → %d | %s | %s | Zones: %d | Base: £%s | Discount: £%s | Charged: £%s",
+        return String.format("[%s] %s | Zone %d -> %d | %s | %s | Zones: %d | Base: £%s | Discount: £%s | Charged: £%s",
                 journeyId,
                 journeyDateTime,
                 fromZone,
@@ -147,9 +147,9 @@ public class Journey {
                 timeBand,
                 passengerType,
                 zonesCrossed,
-                baseFare.toPlainString(),
-                discountApplied.toPlainString(),
-                chargedFare.toPlainString());
+                (baseFare != null ? baseFare.toPlainString() : "0.00"),
+                (discountApplied != null ? discountApplied.toPlainString() : "0.00"),
+                (chargedFare != null ? chargedFare.toPlainString() : "0.00"));
     }
 
     // Returns a detailed multi-line string and is used when searching for a specific journey
@@ -172,9 +172,9 @@ public class Journey {
                 zonesCrossed,
                 timeBand,
                 passengerType,
-                baseFare.toPlainString(),
-                discountApplied.toPlainString(),
-                chargedFare.toPlainString());
+                (baseFare != null ? baseFare.toPlainString() : "0.00"),
+                (discountApplied != null ? discountApplied.toPlainString() : "0.00"),
+                (chargedFare != null ? chargedFare.toPlainString() : "0.00"));
     }
 
     // Returns journey data as a single CSV line and is used by FileManager for export
@@ -187,9 +187,9 @@ public class Journey {
                 timeBand.name(),
                 passengerType.name(),
                 String.valueOf(zonesCrossed),
-                baseFare.toPlainString(),
-                discountApplied.toPlainString(),
-                chargedFare.toPlainString());
+                (baseFare != null ? baseFare.toPlainString() : "0.00"),
+                (discountApplied != null ? discountApplied.toPlainString() : "0.00"),
+                (chargedFare != null ? chargedFare.toPlainString() : "0.00"));
     }
 
     // Returns the CSV header line static because it belongs to the class not one object
