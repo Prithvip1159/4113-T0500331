@@ -1,0 +1,38 @@
+[
+  {
+    "journeyId": "J1",
+    "journeyDateTime": "2026-04-18 03:26",
+    "fromZone": 1,
+    "toZone": 5,
+    "timeBand": "PEAK",
+    "passengerType": "ADULT",
+    "zonesCrossed": 5,
+    "baseFare": 5.00,
+    "discountApplied": 0.0000,
+    "chargedFare": 5.00
+  },
+  {
+    "journeyId": "J2",
+    "journeyDateTime": "2026-04-18 03:26",
+    "fromZone": 1,
+    "toZone": 5,
+    "timeBand": "PEAK",
+    "passengerType": "STUDENT",
+    "zonesCrossed": 5,
+    "baseFare": 5.00,
+    "discountApplied": 1.2500,
+    "chargedFare": 3.75
+  },
+  {
+    "journeyId": "J3",
+    "journeyDateTime": "2026-04-18 03:26",
+    "fromZone": 1,
+    "toZone": 5,
+    "timeBand": "PEAK",
+    "passengerType": "CHILD",
+    "zonesCrossed": 5,
+    "baseFare": 5.00,
+    "discountApplied": 2.5000,
+    "chargedFare": 2.50
+  }
+]

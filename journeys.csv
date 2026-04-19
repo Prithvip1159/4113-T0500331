@@ -1,0 +1,4 @@
+journeyId,dateTime,fromZone,toZone,timeBand,passengerType,zonesCrossed,baseFare,discountApplied,chargedFare
+J1,2026-04-18 03:26,1,5,PEAK,ADULT,5,5.00,0.0000,5.00
+J2,2026-04-18 03:26,1,5,PEAK,STUDENT,5,5.00,1.2500,3.75
+J3,2026-04-18 03:26,1,5,PEAK,CHILD,5,5.00,2.5000,2.50
