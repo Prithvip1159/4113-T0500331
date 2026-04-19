@@ -1,38 +1,26 @@
 [
   {
     "journeyId": "J1",
-    "journeyDateTime": "2026-04-18 03:26",
+    "journeyDateTime": "2026-04-19 15:00",
     "fromZone": 1,
-    "toZone": 5,
+    "toZone": 4,
     "timeBand": "PEAK",
     "passengerType": "ADULT",
-    "zonesCrossed": 5,
-    "baseFare": 5.00,
+    "zonesCrossed": 4,
+    "baseFare": 4.40,
     "discountApplied": 0.0000,
-    "chargedFare": 5.00
+    "chargedFare": 4.40
   },
   {
     "journeyId": "J2",
-    "journeyDateTime": "2026-04-18 03:26",
-    "fromZone": 1,
-    "toZone": 5,
-    "timeBand": "PEAK",
-    "passengerType": "STUDENT",
-    "zonesCrossed": 5,
-    "baseFare": 5.00,
-    "discountApplied": 1.2500,
-    "chargedFare": 3.75
-  },
-  {
-    "journeyId": "J3",
-    "journeyDateTime": "2026-04-18 03:26",
-    "fromZone": 1,
-    "toZone": 5,
+    "journeyDateTime": "2026-04-19 15:00",
+    "fromZone": 2,
+    "toZone": 4,
     "timeBand": "PEAK",
     "passengerType": "CHILD",
-    "zonesCrossed": 5,
-    "baseFare": 5.00,
-    "discountApplied": 2.5000,
-    "chargedFare": 2.50
+    "zonesCrossed": 3,
+    "baseFare": 3.80,
+    "discountApplied": 1.9000,
+    "chargedFare": 1.90
   }
 ]
